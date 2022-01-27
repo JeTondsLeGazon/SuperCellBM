@@ -14,7 +14,15 @@ SCimple2Subsampling <- function(X, SC, gamma, seed = 12345){
   N.keep.genes <- length(SC$genes.use)
 
   set.seed(seed)
-  keep.cells.idx <- sort(sample(N.c, N.SC))
+  samples <- unique(SC$sc.cell.samples)
+  keep.cells.idx <- c()
+  for(samp in samples){
+      drawable <- which(SC$sc.cell.samples == samp)
+      N.sample <- round(length(drawable) / gamma)
+      idx <- sample(drawable, N.sample)
+      keep.cells.idx <- c(keep.cells.idx, idx)
+  }
+  keep.cells.idx <- sort(keep.cells.idx)
   keep.cells.ids <- colnames(X)[keep.cells.idx]
 
   X <- X[, keep.cells.ids]
