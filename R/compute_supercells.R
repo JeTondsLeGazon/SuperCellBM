@@ -40,7 +40,8 @@ compute_supercells <- function(
   genes.use = NULL,
   genes.exclude = NULL,
   seed.seq = c(12345, 111, 19, 42, 7),
-  verbose = FALSE
+  verbose = FALSE,
+  split.by = 'sample'
 ){
   sc.GE <- GetAssayData(sc)
   filepath = file.path(data.folder, 'SC')
@@ -71,7 +72,7 @@ compute_supercells <- function(
         if(verbose) print('Exact')
         SC.list[['Exact']][[gamma.ch]][[as.character(seed.seq[1])]] = SuperCell::SCimplify(
           X = sc.GE,
-          cell.annotation = Idents(sc),
+          cell.annotation = sc[[split.by]][[1]],
           genes.use = genes.use,
           genes.exclude = genes.exclude,
           n.var.genes = n.var.genes,
@@ -91,7 +92,8 @@ compute_supercells <- function(
           if(verbose) print("Random")
           SC.list[['Random']][[gamma.ch]][[seed.i.ch]] <- SCimple2Random(SC = SC.list[['Exact']][[gamma.ch]][[1]],
                                                                          gamma = gamma,
-                                                                         seed = seed.i)
+                                                                         seed = seed.i,
+                                                                         split.by = split.by)
           print('Finished random')
 
 

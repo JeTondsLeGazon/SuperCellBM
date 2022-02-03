@@ -25,7 +25,7 @@ sample.correction <- function(m, samp, gamma){
 #'
 #' @export
 
-SCimple2Random <- function(SC, gamma, seed = 12345){
+SCimple2Random <- function(SC, gamma, seed = 12345, split.by){
   if(is.null(SC$graph.singlecell)){
     stop("SCimply2random is only available for SCiplify result whith return.singlecell.NW == TRUE")
   }
@@ -34,19 +34,36 @@ SCimple2Random <- function(SC, gamma, seed = 12345){
   N.SC         <- round(N.c/gamma)
 
   set.seed(seed)
-  if(!is.null(SC$sc.cell.samples)){
-      samples = unique(SC$sc.cell.samples)
-      SC.per.samples <- lapply(table(SC$sc.cell.samples), function(x) round(x / gamma))
-      membership.per.samples <- list()
-      curCount = 0
-      for(sample in samples){
-        membership.per.samples[[sample]] <- (1 + curCount):(SC.per.samples[[sample]] + curCount)
-        curCount <- curCount + SC.per.samples[[sample]]
+  if(split.by == 'sample'){
+      if(!is.null(SC$sc.cell.samples) & gamma != 1){
+          samples = unique(SC$sc.cell.samples)
+          SC.per.samples <- lapply(table(SC$sc.cell.samples), function(x) round(x / gamma))
+          membership.per.samples <- list()
+          curCount = 0
+          for(sample in samples){
+            membership.per.samples[[sample]] <- (1 + curCount):(SC.per.samples[[sample]] + curCount)
+            curCount <- curCount + SC.per.samples[[sample]]
+          }
+          r.membership <- sapply(SC$sc.cell.samples, function(x) sample(membership.per.samples[[x]], 1))
+          r.membership <- sample.correction(r.membership, membership.per.samples, gamma)
+
+      }else{
+        r.membership <- c(1:N.SC, sample(N.SC, N.c-N.SC, replace = T))
       }
-      r.membership <- sapply(SC$sc.cell.samples, function(x) sample(membership.per.samples[[x]], 1))
-      r.membership <- sample.correction(r.membership, membership.per.samples, gamma)
   }else{
-    r.membership <- c(1:N.SC, sample(N.SC, N.c-N.SC, replace = T))
+      idx.treat <- which(SC$sc.cell.annotation. == 'treat')
+      cells.treat <- names(SC$sc.cell.annotation.[idx.treat])
+      SC.treat <- unique(which(SC$SC.cell.annotation. == 'treat'))
+      treat.membership <- c(SC.treat, sample(SC.treat, length(cells.treat) - length(SC.treat), replace = T))
+      r.membership <- treat.membership
+      names(r.membership) <- cells.treat
+      
+      idx.ctrl <- which(SC$sc.cell.annotation. == 'ctrl')
+      cells.ctrl<- names(SC$sc.cell.annotation.[idx.ctrl])
+      SC.ctrl <- unique(which(SC$SC.cell.annotation. == 'ctrl'))
+      ctrl.membership <- c(SC.ctrl, sample(SC.ctrl, length(cells.ctrl) - length(SC.ctrl), replace = T))
+      names(ctrl.membership) <- cells.ctrl
+      r.membership <- c(r.membership, ctrl.membership)
   }
   SC.random                      <- SC
   SC.random$membership           <- r.membership
