@@ -43,7 +43,7 @@ compute_supercells <- function(
   verbose = FALSE,
   split.by = 'sample'
 ){
-  sc.GE <- GetAssayData(sc)
+  sc.GE <- sc@assays$RNA@data
   filepath = file.path(data.folder, 'SC')
   filename = paste0(filename, '.Rds')
 
