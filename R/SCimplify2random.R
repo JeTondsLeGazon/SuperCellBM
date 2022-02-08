@@ -72,6 +72,7 @@ SCimple2Random <- function(SC, gamma, seed = 12345){
 
   SC.random$graph.supercells     <- SC.NW
   SC.random$seed                 <- seed
-
+  
+  SC.random$SC.cell.annotation. <- supercell_assign(SC$sc.cell.annotation., r.membership)
   return(SC.random)
 }

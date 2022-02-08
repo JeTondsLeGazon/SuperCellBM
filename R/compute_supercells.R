@@ -92,8 +92,7 @@ compute_supercells <- function(
           SC.list[['Random']][[gamma.ch]][[seed.i.ch]] <- SCimple2Random(SC = SC.list[['Exact']][[gamma.ch]][[1]],
                                                                          gamma = gamma,
                                                                          seed = seed.i)
-
-
+          
           if(verbose) print("Subsampling")
           SC.list[['Subsampling']][[gamma.ch]][[seed.i.ch]] <- SCimple2Subsampling(X = sc.GE,
                                                                                    SC.list[['Exact']][[gamma.ch]][[1]],
