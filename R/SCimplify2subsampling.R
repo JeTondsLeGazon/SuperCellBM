@@ -14,10 +14,10 @@ SCimple2Subsampling <- function(X, SC, gamma, seed = 12345){
   N.keep.genes <- length(SC$genes.use)
 
   set.seed(seed)
-  samples <- unique(SC$sc.cell.samples)
+  groups <- unique(SC$SC.cell.annotation.)
   keep.cells.idx <- c()
-  for(samp in samples){
-      drawable <- which(SC$sc.cell.samples == samp)
+  for(group in groups){
+      drawable <- which(SC$sc.cell.annotation. == group)
       N.sample <- round(length(drawable) / gamma)
       idx <- sample(drawable, N.sample)
       keep.cells.idx <- c(keep.cells.idx, idx)

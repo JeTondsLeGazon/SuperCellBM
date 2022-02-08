@@ -20,12 +20,19 @@ sample.correction <- function(m, samp, gamma){
 }
 
 
+# Randomize supercell memberships per groups (label or sample) in order to keep
+# grouped cell together and not randomize totally different cells, which could
+# yield really bad results but would not be meaningful
+randomizeGroups <- function(membership, groups){
+    
+}
+
 #' from Scimplify result to random simplification, modified in order to randomize
 #' memberships per sample
 #'
 #' @export
 
-SCimple2Random <- function(SC, gamma, seed = 12345, split.by){
+SCimple2Random <- function(SC, gamma, seed = 12345){
   if(is.null(SC$graph.singlecell)){
     stop("SCimply2random is only available for SCiplify result whith return.singlecell.NW == TRUE")
   }
@@ -34,37 +41,23 @@ SCimple2Random <- function(SC, gamma, seed = 12345, split.by){
   N.SC         <- round(N.c/gamma)
 
   set.seed(seed)
-  if(split.by == 'sample'){
-      if(!is.null(SC$sc.cell.samples) & gamma != 1){
-          samples = unique(SC$sc.cell.samples)
-          SC.per.samples <- lapply(table(SC$sc.cell.samples), function(x) round(x / gamma))
-          membership.per.samples <- list()
-          curCount = 0
-          for(sample in samples){
-            membership.per.samples[[sample]] <- (1 + curCount):(SC.per.samples[[sample]] + curCount)
-            curCount <- curCount + SC.per.samples[[sample]]
-          }
-          r.membership <- sapply(SC$sc.cell.samples, function(x) sample(membership.per.samples[[x]], 1))
-          r.membership <- sample.correction(r.membership, membership.per.samples, gamma)
-
-      }else{
-        r.membership <- c(1:N.SC, sample(N.SC, N.c-N.SC, replace = T))
+  
+  groups <- unique(SC$SC.cell.annotation.)
+  r.membership <- c()
+  sc.names <- names(SC$sc.cell.annotation.)
+  for(group in groups){  # groups may be label / samples / etc.
+      super.id <- which(SC$SC.cell.annotation. == group)
+      sc.id <- which(SC$sc.cell.annotation. == group)
+      for(supercell.group in super.id){
+          N <- SC$supercell_size[supercell.group]
+          chosen.cells <- sample(sc.id, N)
+          sc.id <- setdiff(sc.id, chosen.cells)
+          new_member <- rep(supercell.group, N)
+          names(new_member) <- sc.names[chosen.cells]
+          r.membership <- c(r.membership, new_member)
       }
-  }else{
-      idx.treat <- which(SC$sc.cell.annotation. == 'treat')
-      cells.treat <- names(SC$sc.cell.annotation.[idx.treat])
-      SC.treat <- unique(which(SC$SC.cell.annotation. == 'treat'))
-      treat.membership <- c(SC.treat, sample(SC.treat, length(cells.treat) - length(SC.treat), replace = T))
-      r.membership <- treat.membership
-      names(r.membership) <- cells.treat
-      
-      idx.ctrl <- which(SC$sc.cell.annotation. == 'ctrl')
-      cells.ctrl<- names(SC$sc.cell.annotation.[idx.ctrl])
-      SC.ctrl <- unique(which(SC$SC.cell.annotation. == 'ctrl'))
-      ctrl.membership <- c(SC.ctrl, sample(SC.ctrl, length(cells.ctrl) - length(SC.ctrl), replace = T))
-      names(ctrl.membership) <- cells.ctrl
-      r.membership <- c(r.membership, ctrl.membership)
   }
+
   SC.random                      <- SC
   SC.random$membership           <- r.membership
   SC.random$supercell_size       <- as.vector(table(r.membership))

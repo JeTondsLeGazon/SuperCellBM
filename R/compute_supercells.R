@@ -79,8 +79,7 @@ compute_supercells <- function(
           k.knn = k.knn,
           gamma = gamma,
           n.pc = n.pc,
-          fast.pca = fast.pca,
-          sc.samples = sc$sample)
+          fast.pca = fast.pca)
 
 
         for(seed.i in seed.seq){
@@ -92,9 +91,7 @@ compute_supercells <- function(
           if(verbose) print("Random")
           SC.list[['Random']][[gamma.ch]][[seed.i.ch]] <- SCimple2Random(SC = SC.list[['Exact']][[gamma.ch]][[1]],
                                                                          gamma = gamma,
-                                                                         seed = seed.i,
-                                                                         split.by = split.by)
-          print('Finished random')
+                                                                         seed = seed.i)
 
 
           if(verbose) print("Subsampling")
