@@ -1,31 +1,6 @@
 require(SuperCell)
 require(igraph)
 
-# As every supercell should contain at least one cell, this corrects for zero-
-# cell supercell (computationally inefficient)
-sample.correction <- function(m, samp, gamma){
-    samples <- names(samp)
-    for(s in samples){
-        idx <- which(m %in% samp[[s]])
-        toRedraw <- setdiff(samp[[s]], m[idx])
-        while(length(toRedraw) != 0){
-            for(el in toRedraw){
-                idx.sampled <- sample(idx, round(gamma/2))
-                m[idx.sampled] <- el
-            }
-            toRedraw <- setdiff(samp[[s]], m[idx])
-        }
-    }
-    return(m)
-}
-
-
-# Randomize supercell memberships per groups (label or sample) in order to keep
-# grouped cell together and not randomize totally different cells, which could
-# yield really bad results but would not be meaningful
-randomizeGroups <- function(membership, groups){
-    
-}
 
 #' from Scimplify result to random simplification, modified in order to randomize
 #' memberships per sample
@@ -48,14 +23,19 @@ SCimple2Random <- function(SC, gamma, seed = 12345){
   for(group in groups){  # groups may be label / samples / etc.
       super.id <- which(SC$SC.cell.annotation. == group)
       sc.id <- which(SC$sc.cell.annotation. == group)
-      for(supercell.group in super.id){
-          N <- SC$supercell_size[supercell.group]
-          chosen.cells <- sample(sc.id, N)
-          sc.id <- setdiff(sc.id, chosen.cells)
-          new_member <- rep(supercell.group, N)
-          names(new_member) <- sc.names[chosen.cells]
-          r.membership <- c(r.membership, new_member)
-      }
+      
+      # Attribute one cell to each available supercell first to ensure each
+      # supercell has at least one element
+      chosen.cells <- sample(sc.id, length(super.id), replace = FALSE)
+      sc.id <- setdiff(sc.id, chosen.cells)
+      new_members <- super.id
+      names(new_members) <- sc.names[chosen.cells]
+      r.membership <- c(r.membership, new_members)
+      
+      # Pick among all supercells with replacement to assign single-cell
+      new_members <- sample(super.id, length(sc.id), replace = TRUE)
+      names(new_members) <- sc.names[sc.id]
+      r.membership <- c(r.membership, new_members)
   }
 
   SC.random                      <- SC
